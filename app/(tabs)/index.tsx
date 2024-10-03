@@ -1,70 +1,85 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { firestore } from '../../src/config/firebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function App() {
+  const [title, setTitle] = useState('');
+  const [price, setPrice] = useState('');
+  const [genre, setGenre] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
-export default function HomeScreen() {
+  const handleAddProduct = () => {
+    if (title && price && genre && imageUrl) {
+      addDoc(collection(firestore, 'products'), {
+        title: title,
+        price: parseFloat(price),
+        genre: genre,
+        imageUrl: imageUrl
+      })
+      .then(() => {
+        Alert.alert('Sucesso', 'Produto adicionado com sucesso!');
+        setTitle('');
+        setPrice('');
+        setGenre('');
+        setImageUrl('');
+      })
+      .catch((error) => {
+        Alert.alert('Erro', 'Erro ao adicionar produto: ' + error.message);
+      });
+    } else {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Título"
+        value={title}
+        onChangeText={setTitle}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Preço"
+        value={price}
+        onChangeText={setPrice}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Gênero"
+        value={genre}
+        onChangeText={setGenre}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Capa (URL)"
+        value={imageUrl}
+        onChangeText={setImageUrl}
+      />
+      <Button
+        title="Enviar"
+        onPress={handleAddProduct}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    padding: 16,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 12,
+    paddingHorizontal: 8,
+    width: '80%',
   },
 });
